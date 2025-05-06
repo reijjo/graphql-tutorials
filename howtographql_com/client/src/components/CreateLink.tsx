@@ -3,6 +3,7 @@ import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 
+import type { LinkType } from "../utils/types";
 import { FEED_QUERY } from "./LinkList";
 
 const CREATE_LINK_MUTATION = gql`
@@ -15,6 +16,12 @@ const CREATE_LINK_MUTATION = gql`
     }
   }
 `;
+
+type FeedQueryResult = {
+  feed: {
+    links: LinkType[];
+  };
+};
 
 export const CreateLink = () => {
   const [formState, setFormState] = useState({
@@ -30,9 +37,11 @@ export const CreateLink = () => {
       url: formState.url,
     },
     update: (cache, { data: { post } }) => {
-      const data = cache.readQuery({
+      const data = cache.readQuery<FeedQueryResult>({
         query: FEED_QUERY,
       });
+
+      if (!data) return;
 
       cache.writeQuery({
         query: FEED_QUERY,
@@ -43,6 +52,7 @@ export const CreateLink = () => {
         },
       });
     },
+
     onCompleted: () => navigate("/"),
   });
 
